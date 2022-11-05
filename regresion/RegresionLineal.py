@@ -14,8 +14,8 @@ class RegresionLineal(object):
         self.X = X
         self.Y = Y
 
-    def regresion_lineal(self):
-        X_train, X_test, y_train, y_test = train_test_split(self.X, self.Y, random_state=0)
+    def regresion_lineal(self, semilla, show):
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.Y, random_state=semilla)
 
         print(">>>> Usando regresion lineal")
         linreg= LinearRegression().fit(X_train, y_train)
@@ -31,7 +31,7 @@ class RegresionLineal(object):
         X_test_scaled= scaler.transform(X_test)
 
         print(">>>> Usando Ridge")
-        clf = Ridge(alpha=1.0).fit(X_train_scaled, y_train)
+        clf = Ridge(alpha=0.1, random_state=semilla).fit(X_train_scaled, y_train)
         print("Interseccion (b): {}".format(clf.intercept_))
         print("Pesos (w): {}".format(clf.coef_))
         r2_score = clf.score(X_test_scaled, y_test)
@@ -39,7 +39,7 @@ class RegresionLineal(object):
 
         print(">>>> Usando Kernel Ridge")
         # Polinomio de grado 6
-        krr = KernelRidge(alpha=1.0, kernel='polynomial', degree=6)
+        krr = KernelRidge(alpha=0.1, kernel='polynomial', degree=6)
         krr.fit(X_train_scaled, y_train)
         r3_score = krr.score(X_test_scaled, y_test)
         print("Score - Ridge Kernel: {}".format(r3_score))
@@ -60,5 +60,12 @@ class RegresionLineal(object):
         axs[1,0].plot(krr.predict(X_test_scaled), '-o', label='prediccion')
         axs[1,0].legend(loc="upper left")
         axs[1,0].set_title('Regresion Kernel Ridge  score:{:.6f}'.format(r3_score))
+        if show:
+            plt.show()
 
-        plt.show()
+        max_score = r1_score
+        if r2_score > max_score:
+            max_score = r2_score
+        if r3_score > max_score:
+            max_score = r3_score
+        return max_score
