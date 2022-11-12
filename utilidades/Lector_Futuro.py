@@ -48,7 +48,10 @@ class Lector_Futuro():
             columnasFinal.extend(["Temperatura prom d_t", "Temperatura d_t+"+str(pasosFuturo)+"D"])
         columnasFinal.remove("Temperatura del Aire (�C)")
         for excolumn in excluirColumnas:
-            columnasFinal.remove(excolumn)
+            try:
+                columnasFinal.remove(excolumn)
+            except:
+                pass
         registros = pd.DataFrame(columns=columnasFinal)
 
         if(fecha is None):
