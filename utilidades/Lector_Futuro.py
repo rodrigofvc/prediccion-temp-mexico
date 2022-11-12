@@ -105,9 +105,15 @@ class Lector_Futuro():
 
         registros = registros.reset_index(drop=True)
 
-        # Toma la columna 'Temperatura d_t' como Y
-        Y = registros[registros.columns[-pasosFuturo:]]
-        # Toma los datos de X excluyendo a la temperatura
-        X = registros[registros.columns[:-pasosFuturo]]
+        if(multiSalidas == False):
+           # Toma la columna 'Temperatura d_t' como Y
+            Y = registros[registros.columns[-1:]]
+            # Toma los datos de X excluyendo a la temperatura
+            X = registros[registros.columns[:-1]]
+        else:
+            # Toma la columna 'Temperatura d_t' como Y
+            Y = registros[registros.columns[-pasosFuturo:]]
+            # Toma los datos de X excluyendo a la temperatura
+            X = registros[registros.columns[:-pasosFuturo]]
 
         return X,Y
