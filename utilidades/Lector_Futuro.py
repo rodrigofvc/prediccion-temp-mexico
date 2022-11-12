@@ -32,7 +32,7 @@ class Lector_Futuro():
     def get_data(self, fecha, horas, n, dias, show, pasosFuturo=1, multiSalidas = True):
         df = pd.read_csv(self.file, encoding='utf8', encoding_errors='ignore')
         # Columna basura que se agrega al leer el archivo
-        df = df.drop(columns=['Unnamed: 11', 'Fecha UTC'])
+        df = df.drop(columns=['Unnamed: 11', 'Fecha UTC'], errors='ignore')
 
         registros = pd.DataFrame(columns=df.columns)
 
@@ -88,7 +88,7 @@ class Lector_Futuro():
             dias -= 1
 
             temporalDFMean = temporalDF.drop(columns=["Fecha Local"])
-            temporalDFMean = temporalDFMean.drop(columns=excluirColumnas)
+            temporalDFMean = temporalDFMean.drop(columns=excluirColumnas, errors='ignore')
             temporalDFMean = temporalDFMean.mean(axis=0, skipna = True)
             temporalDFMean = pd.DataFrame(temporalDFMean)
             temporalDFMean = temporalDFMean.transpose()
