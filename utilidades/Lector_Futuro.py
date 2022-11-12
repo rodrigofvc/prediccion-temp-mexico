@@ -9,7 +9,7 @@ class Lector_Futuro():
         self.file = file
 
 
-    def obtenerUltimaFecha(df, horas, diasFuturo = 0):
+    def obtenerUltimaFecha(self, df, horas, diasFuturo = 0):
         for i in range(len(df)):
             ultima_fecha = df.iloc[i-1,0]
             ultima_hora = ultima_fecha.split(" ")[1]
@@ -52,7 +52,7 @@ class Lector_Futuro():
         registros = pd.DataFrame(columns=columnasFinal)
 
         if(fecha is None):
-            fecha_actual = self.obtenerUltimaFecha(df, horas, diasFuturo = pasosFuturo)
+            fecha_actual = self.obtenerUltimaFecha(df, horas, pasosFuturo)
         else:
             fecha_actual = datetime.strptime(fecha + ' ' + horas, '%Y-%m-%d %H:%M:%S')
         fecha_predecir = fecha_actual + timedelta(days=pasosFuturo)
