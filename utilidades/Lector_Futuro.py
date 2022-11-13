@@ -29,14 +29,14 @@ class Lector_Futuro():
     dias: numero de dias a tomar en cuenta desde la fecha dada hacia atras
     show: indicar si se requiere imprimir las graficas
     """
-    def get_data(self, fecha, horas, n, dias, show, pasosFuturo=1, multiSalidas = True):
+    def get_data(self, fecha, horas, n, dias, show, pasosFuturo=1, multiSalidas = True, excluirColumnas=["Direcci�n de r�faga (grados)", "Precipitaci�n (mm)"]):
         df = pd.read_csv(self.file, encoding='utf8', encoding_errors='ignore')
         # Columna basura que se agrega al leer el archivo
         df = df.drop(columns=['Unnamed: 11', 'Fecha UTC'], errors='ignore')
 
         registros = pd.DataFrame(columns=df.columns)
 
-        excluirColumnas = ["Direcci�n de r�faga (grados)", "Precipitaci�n (mm)"]
+        #excluirColumnas = ["Direcci�n de r�faga (grados)", "Precipitaci�n (mm)"]
         columnasFinal = df.columns[1:].tolist()
         if(multiSalidas):
             tempPasos = 1
