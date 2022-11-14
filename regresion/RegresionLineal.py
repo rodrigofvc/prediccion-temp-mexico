@@ -14,7 +14,7 @@ class RegresionLineal(object):
         self.X = X
         self.Y = Y
 
-    def regresion_lineal(self, semilla, show):
+    def regresion_lineal(self, semilla, show, Z, X_unknown):
         X_train, X_test, y_train, y_test = train_test_split(self.X, self.Y, random_state=semilla)
 
         print(">>>> Usando regresion lineal")
@@ -28,6 +28,8 @@ class RegresionLineal(object):
         scaler = MinMaxScaler()
         scaler.fit(X_train)
         X_train_scaled= scaler.transform(X_train)
+        X_scaled = scaler.transform(self.X)
+        X_unknown_scaled = scaler.transform(X_unknown)
         X_test_scaled= scaler.transform(X_test)
 
         print(">>>> Usando Ridge")
@@ -39,10 +41,12 @@ class RegresionLineal(object):
 
         print(">>>> Usando Kernel Ridge")
         # Polinomio de grado 6
-        krr = KernelRidge(alpha=0.1, kernel='polynomial', degree=6)
+        krr = KernelRidge(alpha=0.1, kernel='polynomial', degree=5)
         krr.fit(X_train_scaled, y_train)
         r3_score = krr.score(X_test_scaled, y_test)
         print("Score - Ridge Kernel: {}".format(r3_score))
+        print(X_test_scaled)
+        print(y_test)
 
         fig, axs = plt.subplots(2, 2)
         # Regresion lineal
@@ -56,10 +60,35 @@ class RegresionLineal(object):
         axs[0,1].legend(loc="upper left")
         axs[0,1].set_title('Regresion Ridge  score:{:.6f}'.format(r2_score))
         # Regresion Kernel Ridge con polinomio 6
-        axs[1,0].plot(y_test.values, '-o', label='test')
-        axs[1,0].plot(krr.predict(X_test_scaled), '-o', label='prediccion')
-        axs[1,0].legend(loc="upper left")
-        axs[1,0].set_title('Regresion Kernel Ridge  score:{:.6f}'.format(r3_score))
+        axs[1,0].plot(self.Y.values, '-o', label='test')
+        axs[1,0].plot(krr.predict(X_scaled), '-o', label='prediccion')
+        axs[1,0].legend(loc="lower left")
+        axs[1,0].set_title('Regresion Ridge  score:{:.6f}'.format(r3_score))
+
+        # Muestra la grafica con las predicciones de dias futuros
+        fig1 = plt.figure()
+        axs1 = fig1.add_subplot(1, 1, 1)
+        axs1.set_ylabel("Temperatura")
+        axs1.plot(Z.values, '-o', label='test')
+        axs1.plot(krr.predict(X_unknown_scaled), '-o', label='prediccion')
+        axs1.legend(loc="lower left")
+        axs1.set_title('Prediccion a futuro')
+        fig1.savefig('kr-pred.png')
+
+        # Muestra la gráfica con toda la informacion
+        fig2 = plt.figure()
+        axs2 = fig2.add_subplot(1, 1, 1)
+        axs2.plot(self.Y.values, '-o', label='test')
+        axs2.plot(krr.predict(X_scaled), '-o', label='prediccion')
+        axs2.legend(loc="lower left")
+        axs2.set_title('Regresion Ridge          score:{:.6f}'.format(r3_score))
+        fig2.savefig('kr-total.png')
+
+
+        #print("SCORE")
+        #print(krr.score(X_unknown_scaled, Z.values))
+        #print("Z {} \n  X {}".format(Z.values, krr.predict(X_unknown_scaled)))
+
         if show:
             plt.show()
 

@@ -18,7 +18,7 @@ class Lector():
     dias: numero de dias a tomar en cuenta desde la fecha dada hacia atras
     show: indicar si se requiere imprimir las graficas
     """
-    def get_data(self, fecha, horas, n, dias, show):
+    def get_data(self, fecha, horas, n, dias, show, dias_futuro):
         df = pd.read_csv(self.file, encoding='utf8', encoding_errors='ignore')
         # Columna basura que se agrega al leer el archivo
         df = df.drop(columns=['Unnamed: 11'])
@@ -42,17 +42,49 @@ class Lector():
             fecha_actual -= timedelta(days=1)
             dias -= 1
 
+        #Obten tambien registros de algunos dias a futuro
+        fecha_actual = datetime.strptime(fecha + ' ' + horas, '%Y-%m-%d %H:%M:%S')
+        fecha_actual -= timedelta(minutes=10*(n//2))
+        fecha_actual += timedelta(days=1)
+        i = 0
+        Z = pd.DataFrame(columns=df.columns)
+        while i != dias_futuro:
+            row = df[df['Fecha UTC'].str.contains(fecha_actual.strftime('%Y-%m-%d %H:%M:%S'))]
+            Z = pd.concat([Z, row])
+            j = 0
+            while j != n:
+                fecha_actual += timedelta(minutes=10)
+                row = df[df['Fecha UTC'].str.contains(fecha_actual.strftime('%Y-%m-%d %H:%M:%S'))]
+                Z = pd.concat([Z, row])
+                j += 1
+            fecha_actual -= timedelta(minutes=10*n)
+            fecha_actual += timedelta(days=1)
+            i += 1
+        X_unknow = Z
+
         print(registros)
 
         # Toma la columna 'Temperatura del Aire (°C)' como Y
         columna_temperatura = registros.columns[6]
         Y = registros.get([columna_temperatura])
+        print("\n--------> Y \n")
         print(Y)
+
+        Z1 = Z.get([columna_temperatura])
+
         # Elimina las columnas con datos no numericos
         registros = registros.drop(columns=['Fecha Local', 'Fecha UTC'])
         # Toma los datos de X excluyendo a la temperatura
         X = registros.drop(columna_temperatura, axis=1)
-
+        # Elimina los registros de direccion de viento y rafaga
+        direccion_viento = registros.columns[0]
+        direccion_rafaga = registros.columns[1]
+        X = X.drop(direccion_viento, axis=1)
+        X = X.drop(direccion_rafaga, axis=1)
+        
+        X_unknow = X_unknow.drop(columns=['Fecha Local', 'Fecha UTC'])
+        X_unknow = X_unknow.drop(columna_temperatura, axis=1)
+        print("\n--------> X \n")
         print(X)
 
         fig, axs = plt.subplots(2, 4)
@@ -100,4 +132,4 @@ class Lector():
         if show:
             plt.show()
 
-        return X,Y
+        return X,Y,Z1,X_unknow
