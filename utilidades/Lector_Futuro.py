@@ -21,100 +21,85 @@ class Lector_Futuro():
 
 
     """
-    fecha: fecha mas adelante a partir de la cual se van a tomar los registros
-        formato: YYYY-MM-DD
-    horas: registros a considerar por dia
+    horas: horario a considerar
         formato: HH:MM:SS
-    n: numero de registros a considerar por dia
-    dias: numero de dias a tomar en cuenta desde la fecha dada hacia atras
-    show: indicar si se requiere imprimir las graficas
+    pasosPasado: numero de dias a tomar en cuenta hacia atras
+    pasosFuturo: número de pasos a tomaren cuenta hacía el futuro
+    excluirColumnasX: lista de columnas a excluir de la variable df (dataframe de datos)
+    show: indicar si se requiere imprimir
     """
-    def get_data(self, fecha, horas, n, dias, show, pasosFuturo=1, multiSalidas = True, excluirColumnas=["Direcci�n de r�faga (grados)", "Precipitaci�n (mm)"]):
-        df = pd.read_csv(self.file, encoding='utf8', encoding_errors='ignore')
+    def get_data(self, horas, pasosPasado=1, pasosFuturo=1, excluirColumnasX=["Direcci�n del Viento (grados)","Direcci�n de r�faga (grados)"], show=True):
+        if(pasosFuturo < 1):
+          print("[Error]: La variable pasosFuturo debe ser 1 o mayor.")
+          return None,None
+        if(pasosPasado < 1):
+          print("[Error]: La variable pasosPasado debe ser 1 o mayor.")
+          return None,None
+        df = pd.read_csv('data/encb-90-2.csv', encoding='utf8', encoding_errors='ignore')
+
         # Columna basura que se agrega al leer el archivo
         df = df.drop(columns=['Unnamed: 11', 'Fecha UTC'], errors='ignore')
+        # Se calcula la fecha más reciente en el horario especificado, dejando pasosFuturo adelante de esta fecha
+        fecha_mas_reciente_valida = self.obtenerUltimaFecha(df, horas, pasosFuturo)
+        # Se eliminan todas las filas que no sean de la hora especificada
+        df = df[df['Fecha Local'].str.contains(horas)]
+        df2 = df.copy()
+        # Remueve otras columnas pasadas por parámetros de la función
+        df = df.drop(columns=excluirColumnasX, errors='ignore')
 
-        registros = pd.DataFrame(columns=df.columns)
+        # Crea la lista con el nombre de las columnas de la matriz X
+        columnasX = []
+        # Crea las columnas de la matriz X dependiendo de los pasos pasados
+        for i in range(pasosPasado-1,-1,-1):
+          columnasPasoPasado = df.columns[1:].tolist()
+          for j in range(len(columnasPasoPasado)):
+            columnasPasoPasado[j] += " t-" + str(i+pasosFuturo) + "D"
+          columnasX += columnasPasoPasado
 
-        #excluirColumnas = ["Direcci�n de r�faga (grados)", "Precipitaci�n (mm)"]
-        columnasFinal = df.columns[1:].tolist()
-        if(multiSalidas):
-            tempPasos = 1
-            columnasFinal.append("Temperatura prom d_t")
-            while(tempPasos <= pasosFuturo):
-                    columnasFinal.append("Temperatura d_t+"+str(tempPasos)+"D")
-                    tempPasos += 1
-        else:
-            columnasFinal.extend(["Temperatura prom d_t", "Temperatura d_t+"+str(pasosFuturo)+"D"])
-        columnasFinal.remove("Temperatura del Aire (�C)")
-        for excolumn in excluirColumnas:
-            if excolumn in columnasFinal:
-                columnasFinal.remove(excolumn)
-        registros = pd.DataFrame(columns=columnasFinal)
+        columnasY = ["Temperatura del Aire (�C) t"]
 
-        if(fecha is None):
-            fecha_actual = self.obtenerUltimaFecha(df, horas, pasosFuturo)
-        else:
-            fecha_actual = datetime.strptime(fecha + ' ' + horas, '%Y-%m-%d %H:%M:%S')
-        fecha_predecir = fecha_actual + timedelta(days=pasosFuturo)
-        fecha_actual -= timedelta(minutes=10*(n//2))
+        # Se crea la matriz X con las columnas definidas anteriormente
+        X = pd.DataFrame(columns=columnasX)
+        Y = pd.DataFrame(columns=columnasY)
 
-        while dias != 0:
-            if(multiSalidas):
-                    datosPredecirList = []
-                    tempPasos = 1
-                    print("\n---------------\n")
-                    while(tempPasos <= pasosFuturo):
-                        print(f"Temperatura de fecha a predecir (Temperatura d_t+{tempPasos}D): {(fecha_predecir - timedelta(days=tempPasos-1))}")
-                        datosPredecir = df[df['Fecha Local'].str.contains((fecha_predecir - timedelta(days=tempPasos-1)).strftime('%Y-%m-%d %H:%M:%S'))]
-                        datosPredecirList.append(datosPredecir)
-                        tempPasos += 1
+        # Se obtiene la primer fecha a predecir con pasos en el futuro
+        fecha_predecir = fecha_mas_reciente_valida + timedelta(days = pasosFuturo)
+
+        ready = False
+        while not ready: #Cuando ya no sea posible obtener una fecha futura
+          datosPredecir = df2[df2['Fecha Local'].str.contains(fecha_predecir.strftime('%Y-%m-%d %H:%M:%S'))]
+          if(datosPredecir.shape[0] == 0):
+            ready = True
+          else:
+            temperaturaPredecir = float(datosPredecir["Temperatura del Aire (�C)"])
+          if(show):
+            print(f"\n---------------\nTemperatura de fecha a predecir (Temperatura d_t = {temperaturaPredecir}): {fecha_predecir}")
+
+          rowFinal = []
+          for i in range(pasosPasado):
+            row = df[df['Fecha Local'].str.contains(fecha_mas_reciente_valida.strftime('%Y-%m-%d %H:%M:%S'))]
+            if(row.shape[0] != 0):
+              rowList = row.squeeze().tolist()[1:]
+              rowFinal += rowList
+              if(show):
+                print(f"Datos de t-{i+pasosFuturo} días antes: {fecha_mas_reciente_valida} {rowList}", end="\n")
             else:
-                    print(f"\n---------------\nTemperatura de fecha a predecir (Temperatura d_t+{pasosFuturo}D): {fecha_predecir}")
-                    datosPredecir = df[df['Fecha Local'].str.contains(fecha_predecir.strftime('%Y-%m-%d %H:%M:%S'))]
-            print(f"Datos de 1 día antes, con promedio en ventana de n datos (Temperatura d_t): {fecha_actual}", end=", ")
-            temporalDF = pd.DataFrame(columns=df.columns)
-            row = df[df['Fecha Local'].str.contains(fecha_actual.strftime('%Y-%m-%d %H:%M:%S'))]
-            temporalDF = pd.concat([temporalDF, row])
-            i = 0
-            while i != n-1:
-                    fecha_actual += timedelta(minutes=10)
-                    print(f"{fecha_actual}", end=", ")
-                    row = df[df['Fecha Local'].str.contains(fecha_actual.strftime('%Y-%m-%d %H:%M:%S'))]
-                    temporalDF = pd.concat([temporalDF, row])
-                    i += 1
-            fecha_actual -= timedelta(minutes=10*(n-1))
-            fecha_actual -= timedelta(days=pasosFuturo+1)
-            fecha_predecir -= timedelta(days=pasosFuturo+1)
-            dias -= 1
-
-            temporalDFMean = temporalDF.drop(columns=["Fecha Local"])
-            temporalDFMean = temporalDFMean.drop(columns=excluirColumnas, errors='ignore')
-            temporalDFMean = temporalDFMean.mean(axis=0, skipna = True)
-            temporalDFMean = pd.DataFrame(temporalDFMean)
-            temporalDFMean = temporalDFMean.transpose()
-            temporalDFMean["Temperatura prom d_t"] = [float(temporalDFMean["Temperatura del Aire (�C)"])]
-            if(multiSalidas):
-                    tempPasos = 1
-                    while(tempPasos <= pasosFuturo):
-                        temporalDFMean["Temperatura d_t+"+str(tempPasos)+"D"] = [float(datosPredecirList[tempPasos-1]["Temperatura del Aire (�C)"])]
-                        tempPasos += 1
+              if(show):
+                print(f"Ya no hay más datos hacía atras, se omite esta última instancia.")
+            fecha_mas_reciente_valida -= timedelta(days=1)
+          if(len(rowFinal) == 0 or len(rowFinal) < X.shape[1]):
+            ready = True
+          if(ready == False):
+            if(show):
+              print(f"Datos pasados final: {rowFinal}", end="\n---------------")
+            row_Xdf = pd.DataFrame([rowFinal], columns=columnasX)
+            temperatura_Ydf = pd.DataFrame([[temperaturaPredecir]], columns=columnasY)
+            X = pd.concat([X, row_Xdf])
+            Y = pd.concat([Y, temperatura_Ydf])
+            fecha_mas_reciente_valida += timedelta(days=pasosPasado-1)
+            if(pasosPasado > 1):
+              fecha_predecir -= timedelta(days=pasosPasado-1)
             else:
-                    temporalDFMean["Temperatura d_t+"+str(pasosFuturo)+"D"] = [float(datosPredecir["Temperatura del Aire (�C)"])]
-            temporalDFMean = temporalDFMean.drop(columns=["Temperatura del Aire (�C)"])
-            registros = pd.concat([registros, temporalDFMean])
-
-        registros = registros.reset_index(drop=True)
-
-        if(multiSalidas == False):
-           # Toma la columna 'Temperatura d_t' como Y
-            Y = registros[registros.columns[-1:]]
-            # Toma los datos de X excluyendo a la temperatura
-            X = registros[registros.columns[:-1]]
-        else:
-            # Toma la columna 'Temperatura d_t' como Y
-            Y = registros[registros.columns[-pasosFuturo:]]
-            # Toma los datos de X excluyendo a la temperatura
-            X = registros[registros.columns[:-pasosFuturo]]
+              fecha_predecir -= timedelta(days=1)
 
         return X,Y
