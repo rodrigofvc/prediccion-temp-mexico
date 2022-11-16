@@ -35,7 +35,7 @@ class Lector_Futuro():
         if(pasosPasado < 1):
           print("[Error]: La variable pasosPasado debe ser 1 o mayor.")
           return None,None
-        df = pd.read_csv('data/encb-90-2.csv', encoding='utf8', encoding_errors='ignore')
+        df = pd.read_csv(self.file, encoding='utf8', encoding_errors='ignore')
 
         # Columna basura que se agrega al leer el archivo
         df = df.drop(columns=['Unnamed: 11', 'Fecha UTC'], errors='ignore')
@@ -72,8 +72,8 @@ class Lector_Futuro():
             ready = True
           else:
             temperaturaPredecir = float(datosPredecir["Temperatura del Aire (�C)"])
-          if(show):
-            print(f"\n---------------\nTemperatura de fecha a predecir (Temperatura d_t = {temperaturaPredecir}): {fecha_predecir}")
+            if(show):
+              print(f"\n---------------\nTemperatura de fecha a predecir (Temperatura d_t = {temperaturaPredecir}): {fecha_predecir}")
 
           rowFinal = []
           for i in range(pasosPasado):
@@ -85,7 +85,7 @@ class Lector_Futuro():
                 print(f"Datos de t-{i+pasosFuturo} días antes: {fecha_mas_reciente_valida} {rowList}", end="\n")
             else:
               if(show):
-                print(f"Ya no hay más datos hacía atras, se omite esta última instancia.")
+                print(f"Ya no hay más datos hacía atras, o la fecha {fecha_mas_reciente_valida} no existe, se omite esta última instancia y termina la iteracion.")
             fecha_mas_reciente_valida -= timedelta(days=1)
           if(len(rowFinal) == 0 or len(rowFinal) < X.shape[1]):
             ready = True
