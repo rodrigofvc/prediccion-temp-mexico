@@ -26,6 +26,7 @@ class Lector_Futuro():
     pasosPasado: numero de dias a tomar en cuenta hacia atras
     pasosFuturo: número de pasos a tomaren cuenta hacía el futuro
     excluirColumnasX: lista de columnas a excluir de la variable df (dataframe de datos)
+	agregarHoraLocalY: agrega la hora local a la temperatura a predecir (Y)
     show: indicar si se requiere imprimir
     """
     def get_data(self, horas, pasosPasado=1, pasosFuturo=1, excluirColumnasX=["Direcci�n del Viento (grados)","Direcci�n de r�faga (grados)"], agregarHoraLocalY = False, show=True):
