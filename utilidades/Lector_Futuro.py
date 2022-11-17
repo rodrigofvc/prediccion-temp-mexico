@@ -106,4 +106,7 @@ class Lector_Futuro():
             fecha_mas_reciente_valida += timedelta(days=pasosPasado-1)
             fecha_predecir -= timedelta(days=1)
 
+        X = X.reset_index(drop=True)
+        Y = Y.reset_index(drop=True)
+
         return X,Y
