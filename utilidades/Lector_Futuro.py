@@ -56,10 +56,10 @@ class Lector_Futuro():
             columnasPasoPasado[j] += " t-" + str(i+1) + "D"
           columnasX += columnasPasoPasado
 
-		if(agregarHoraLocalY):
-			columnasY = ["Temperatura del Aire (�C) t", "Hora Local"]
-		else:
-			columnasY = ["Temperatura del Aire (�C) t"]
+        if(agregarHoraLocalY):
+          columnasY = ["Temperatura del Aire (�C) t", "Hora Local"]
+        else:
+          columnasY = ["Temperatura del Aire (�C) t"]
 
         # Se crea la matriz X con las columnas definidas anteriormente
         X = pd.DataFrame(columns=columnasX)
@@ -96,10 +96,10 @@ class Lector_Futuro():
             if(show):
               print(f"Datos pasados final: {rowFinal}", end="\n---------------")
             row_Xdf = pd.DataFrame([rowFinal], columns=columnasX)
-			if(agregarHoraLocalY):
-				temperatura_Ydf = pd.DataFrame([[temperaturaPredecir, fecha_predecir]], columns=columnasY)
-			else:
-				temperatura_Ydf = pd.DataFrame([[temperaturaPredecir]], columns=columnasY)
+            if(agregarHoraLocalY):
+              temperatura_Ydf = pd.DataFrame([[temperaturaPredecir, fecha_predecir]], columns=columnasY)
+            else:
+              temperatura_Ydf = pd.DataFrame([[temperaturaPredecir]], columns=columnasY)
             X = pd.concat([X, row_Xdf])
             Y = pd.concat([Y, temperatura_Ydf])
             fecha_mas_reciente_valida += timedelta(days=pasosPasado-1)
