@@ -28,7 +28,7 @@ class Lector_Futuro():
     excluirColumnasX: lista de columnas a excluir de la variable df (dataframe de datos)
     show: indicar si se requiere imprimir
     """
-    def get_data(self, horas, pasosPasado=1, pasosFuturo=1, excluirColumnasX=["Direcci�n del Viento (grados)","Direcci�n de r�faga (grados)"], show=True):
+    def get_data(self, horas, pasosPasado=1, pasosFuturo=1, excluirColumnasX=["Direcci�n del Viento (grados)","Direcci�n de r�faga (grados)"], agregarHoraLocalY = False, show=True):
         if(pasosFuturo < 1):
           print("[Error]: La variable pasosFuturo debe ser 1 o mayor.")
           return None,None
@@ -56,7 +56,10 @@ class Lector_Futuro():
             columnasPasoPasado[j] += " t-" + str(i+1) + "D"
           columnasX += columnasPasoPasado
 
-        columnasY = ["Temperatura del Aire (�C) t", "Hora Local"]
+		if(agregarHoraLocalY):
+			columnasY = ["Temperatura del Aire (�C) t", "Hora Local"]
+		else:
+			columnasY = ["Temperatura del Aire (�C) t"]
 
         # Se crea la matriz X con las columnas definidas anteriormente
         X = pd.DataFrame(columns=columnasX)
@@ -93,7 +96,10 @@ class Lector_Futuro():
             if(show):
               print(f"Datos pasados final: {rowFinal}", end="\n---------------")
             row_Xdf = pd.DataFrame([rowFinal], columns=columnasX)
-            temperatura_Ydf = pd.DataFrame([[temperaturaPredecir, fecha_predecir]], columns=columnasY)
+			if(agregarHoraLocalY):
+				temperatura_Ydf = pd.DataFrame([[temperaturaPredecir, fecha_predecir]], columns=columnasY)
+			else:
+				temperatura_Ydf = pd.DataFrame([[temperaturaPredecir]], columns=columnasY)
             X = pd.concat([X, row_Xdf])
             Y = pd.concat([Y, temperatura_Ydf])
             fecha_mas_reciente_valida += timedelta(days=pasosPasado-1)
