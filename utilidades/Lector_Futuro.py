@@ -50,10 +50,10 @@ class Lector_Futuro():
         # Crea la lista con el nombre de las columnas de la matriz X
         columnasX = []
         # Crea las columnas de la matriz X dependiendo de los pasos pasados
-        for i in range(pasosPasado-1,-1,-1):
+        for i in range(pasosPasado):
           columnasPasoPasado = df.columns[1:].tolist()
           for j in range(len(columnasPasoPasado)):
-            columnasPasoPasado[j] += " t-" + str(i+pasosFuturo) + "D"
+            columnasPasoPasado[j] += " t-" + str(i+1) + "D"
           columnasX += columnasPasoPasado
 
         columnasY = ["Temperatura del Aire (�C) t", "Hora Local"]
