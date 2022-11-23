@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import date, timedelta
+from datetime import datetime
 
 class Lector():
 
@@ -41,3 +42,27 @@ class Lector():
         X = registros.drop(columna_temperatura, axis=1)
         print(X)
         return X,Y
+
+    """
+    Toma los registros dentro de un intervalo de tiempo
+    """
+    def intervalo(self, X, Y, fecha_cercana, fecha_lejana):
+        fecha_cercana_dt = datetime.strptime(fecha_cercana, '%Y-%m-%d')
+        fecha_cercana_fn = datetime.strptime(fecha_lejana, '%Y-%m-%d')
+        dias_diferencia = fecha_cercana_dt - fecha_cercana_fn
+        n = dias_diferencia.days + 1
+
+        X_out = pd.DataFrame(columns=X.columns)
+        Y_out = pd.DataFrame(columns=Y.columns)
+
+        index = 0
+
+        while n != 0:
+            row_x = X.iloc[[index]]
+            row_y = Y.iloc[[index]]
+            X_out = pd.concat([X_out, row_x])
+            Y_out = pd.concat([Y_out, row_y])
+            index += 1
+            n -= 1
+
+        return X_out, Y_out
