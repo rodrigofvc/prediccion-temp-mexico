@@ -47,15 +47,16 @@ class Lector():
     Toma los registros dentro de un intervalo de tiempo
     """
     def intervalo(self, X, Y, fecha_cercana, fecha_lejana):
-        fecha_cercana_dt = datetime.strptime(fecha_cercana, '%Y-%m-%d')
-        fecha_cercana_fn = datetime.strptime(fecha_lejana, '%Y-%m-%d')
+        fecha_cercana_dt = datetime.strptime(fecha_cercana, '%Y-%m-%d %H:%M:%S')
+        fecha_cercana_fn = datetime.strptime(fecha_lejana, '%Y-%m-%d %H:%M:%S')
         dias_diferencia = fecha_cercana_dt - fecha_cercana_fn
         n = dias_diferencia.days + 1
 
         X_out = pd.DataFrame(columns=X.columns)
         Y_out = pd.DataFrame(columns=Y.columns)
 
-        index = 0
+        index = Y.index[Y['Hora Local'] == fecha_cercana].tolist()
+        index = index[0]
 
         while n != 0:
             row_x = X.iloc[[index]]
